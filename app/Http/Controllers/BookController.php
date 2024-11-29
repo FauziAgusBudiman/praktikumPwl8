@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BookExport;
 use App\Models\Book;
 use App\Models\Bookshelf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BookController extends Controller
 {
@@ -116,5 +119,22 @@ class BookController extends Controller
             );
         }
         return redirect()->route('book')->with($notification);
+    }
+    public function print()
+    {
+        $data['books'] = Book::all();
+        return pdf::loadView('books.print', $data)
+            ->setPaper('a4')
+            ->stream('data_buku.pdf');
+    }
+
+    public function export()
+    {
+        return Excel::download(new BookExport, 'data_buku.xlsx');
+    }
+    public function import(Request $request)
+    {
+        $file = $request->file('excel');
+        Excel::import(new BookImport, $file);
     }
 }
